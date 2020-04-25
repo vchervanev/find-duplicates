@@ -1,55 +1,56 @@
 package files
 
-// import "sync"
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"path"
+)
 
-// type manager struct{
-// 	workers []worker
-// 	dirsQueue chan string
-// 	wg sync.WaitGroup
-// }
+type scanner struct {
+	filesQueue chan string
+	poolSize   int
+	dirs       dirs
+}
 
-// func (m manager) perform(path string, filesQueue chan os.FileInfo, size int) {
-// 	m.dirsQueue = make(chan string, 1000)
-// 	m.workers = make([]worker, size)
-// 	for id := 0; i++; i < size {
-// 		w := worker{id: id, mgr: m}
-// 		m.workers[id] = w
-// 		go w.start()
-// 	}
-// 	m.addDir(path)
-// 	m.wg.Wait()
-// 	close(m.dirsQueue)
-// }
+func newScanner(path string, filesQueue chan string, poolSize int) *scanner {
+	scn := scanner{filesQueue: filesQueue, poolSize: poolSize}
+	scn.dirs.pushDir(path)
+	return &scn
+}
 
-// func (m manager) addDir(path string) {
-// 	m.dirsQueue <- path
-// 	m.wg.Add(1)
-// }
+func (s *scanner) perform() {
+	for i := 0; i < s.poolSize; i++ {
+		go s.worker()
+	}
+	go s.waitForDirs()
+}
 
-// type worker struct {
-// 	id int
-// 	mgr *manager
-// }
+func (s *scanner) waitForDirs() {
+	s.dirs.wait()
+	close(s.filesQueue)
+}
 
-// func (w worker) start() {
-// 	for path := range w.mgr.dirsQueue {
-// 		fmt.Println("before", len(w.mgr.dirsQueue))
-// 		f.visit(path)
-// 		fmt.Println("after", len(w.mgr.dirsQueue))
-// 	}
-// }
+func (s *scanner) worker() {
+	for dir := range s.dirs.queue {
+		s.visit(dir)
+		s.dirs.done()
+	}
+	fmt.Println("end worker")
+}
 
-// func (w worker) visit(path string) {
-// 	files, err := ioutil.ReadDir(path)
-// 	if err != nil {
-// 		log.Println(err)
-// 		return
-// 	}
-// 	for _, file := range files {
-// 		if file.IsDir() {
-// 			w.mgr.addDir(path + "/" + file.Name())
-// 		} else {
-// 			// fmt.Println(formatFileInfo(path, file))
-// 		}
-// 	}
-// }
+func (s *scanner) visit(dir string) {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	for _, file := range files {
+		path := path.Join(dir, file.Name())
+		if file.IsDir() {
+			s.dirs.pushDir(path)
+		} else {
+			s.filesQueue <- path
+		}
+	}
+}
