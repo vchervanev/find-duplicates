@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	files "github.com/vchervanev/find-dup-files/internal"
+	"github.com/vchervanev/find-dup-files/internal/files"
 )
 
 func main() {
-	files.Files{Root: "/Users/vladimir.chervanev/go/src", Destination: os.Stdout}.Process()
+	files.New("/Users/vladimir.chervanev/go/src", os.Stdout).Enumerate()
 }
