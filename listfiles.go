@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	files.New("/Users/vladimir.chervanev/go/src").Enumerate()
+	files.Enumerate("/Users/vladimir.chervanev/go/src")
 }
