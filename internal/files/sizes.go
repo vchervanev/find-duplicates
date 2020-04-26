@@ -1,15 +1,11 @@
 package files
 
-type list struct {
-	bySize map[int64][]string
+type stringsByInt map[int64][]string
+
+func newStringsByInt(size int) stringsByInt {
+	return make(map[int64][]string, size)
 }
 
-func newList() (result *list) {
-	result = &list{}
-	result.bySize = make(map[int64][]string, 1000)
-	return
-}
-
-func (l list) register(rec record) {
-	l.bySize[rec.size] = append(l.bySize[rec.size], rec.path)
+func (l stringsByInt) register(rec record) {
+	l[rec.size] = append(l[rec.size], rec.path)
 }
