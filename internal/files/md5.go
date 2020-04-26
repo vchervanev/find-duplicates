@@ -17,7 +17,8 @@ func md5sum(path string) string {
 
 	h := md5.New()
 	if _, err := io.Copy(h, f); err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, err)
+		return ""
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil))

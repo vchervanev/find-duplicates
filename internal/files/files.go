@@ -13,21 +13,31 @@ func Enumerate(root string) error {
 		pathsBySize.register(rec)
 	}
 
-	var uniq, multi int64
-	for size, paths := range pathsBySize {
-		switch len(paths) {
-		case 1:
-			uniq++
-		default:
-			multi++
-			fmt.Println("Size:", size)
+	filesByMD5 := newFilesByMD5(1000)
+	for _, paths := range pathsBySize {
+		if len(paths) > 0 {
 			for _, path := range paths {
-				fmt.Println(path, md5sum(path))
+				filesByMD5.register(path)
 			}
 		}
 	}
 
-	fmt.Printf("Uniq: %d, Multi: %d\n", uniq, multi)
+	var dups, totalDups int
+
+	for md5value, paths := range(filesByMD5) {
+		if len(paths) == 1 {
+			continue
+		}
+
+		fmt.Println("\nMD5:", md5value)
+		dups++
+		totalDups += len(paths)
+		for _, path := range paths {
+			fmt.Println("\t", path)
+		}
+	}
+
+	fmt.Printf("dups: %d, total dups: %d\n", dups, totalDups)
 
 	return nil
 }
