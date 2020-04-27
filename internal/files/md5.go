@@ -4,14 +4,14 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
-	"log"
 	"os"
 )
 
 func md5sum(path string) string {
 	f, err := os.Open(path)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, err)
+		return ""
 	}
 	defer f.Close()
 

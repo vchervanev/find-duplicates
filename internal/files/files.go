@@ -4,15 +4,27 @@ import (
 	"fmt"
 )
 
-// Enumerate lists files starting from root
-func Enumerate(root string) error {
-	files := make(chan record, 10000)
-	newScanner(root, files, 100).perform()
+// ListDuplicates does everything
+func ListDuplicates(root string) {
+	files := enumerate(root)
+	findDuplicates(files)
+}
+
+func enumerate(root string) []record {
+	filesChan := make(chan record, 10000)
+	newScanner(root, filesChan, 100).perform()
+	files := make([]record, 40000)
+	for rec := range filesChan {
+		files = append(files, rec)
+	}
+	return files
+}
+
+func findDuplicates(files []record) {
 	pathsBySize := newStringsByInt(1000)
-	for rec := range files {
+	for _, rec := range files {
 		pathsBySize.register(rec)
 	}
-
 	filesByMD5 := newFilesByMD5(1000)
 	for _, paths := range pathsBySize {
 		if len(paths) > 0 {
@@ -24,7 +36,7 @@ func Enumerate(root string) error {
 
 	var dups, totalDups int
 
-	for md5value, paths := range(filesByMD5) {
+	for md5value, paths := range filesByMD5 {
 		if len(paths) == 1 {
 			continue
 		}
@@ -38,6 +50,4 @@ func Enumerate(root string) error {
 	}
 
 	fmt.Printf("dups: %d, total dups: %d\n", dups, totalDups)
-
-	return nil
 }
