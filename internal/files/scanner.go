@@ -8,8 +8,13 @@ import (
 )
 
 type record struct {
-	path string
-	size int64
+	path        string
+	size        int64
+	isDuplicate bool
+}
+
+func (r *record) markAsDuplicate() {
+	r.isDuplicate = true
 }
 
 type scanner struct {
